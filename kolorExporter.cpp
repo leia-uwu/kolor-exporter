@@ -25,17 +25,17 @@ void kolorExporter::setColors() const
     const QMap<QString, QColor> colors = getColors();
 
     writeCssColorsToFile(colors,
-        QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)
-            + QStringLiteral("/kde-colors.css"), // ~/.config/kde-colors.css
-        ":root",
-        "--");
+                         QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)
+                             + QStringLiteral("/kde-colors.css"), // ~/.config/kde-colors.css
+                         ":root",
+                         "--");
 
     // rofi
     writeCssColorsToFile(colors,
-        QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
-            + QStringLiteral("/rofi/themes/kde-colors.rasi"), // ~/.local/share/rofi/themes/kde-colors.rasi
-        "*",
-        "");
+                         QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
+                             + QStringLiteral("/rofi/themes/kde-colors.rasi"), // ~/.local/share/rofi/themes/kde-colors.rasi
+                         "*",
+                         "");
 }
 
 void kolorExporter::writeCssColorsToFile(QMap<QString, QColor> colors, QString path, QString rootPrefix, QString varPrefix) const

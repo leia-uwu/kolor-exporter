@@ -19,3 +19,4 @@ CMakeLists.txt.user.*
 /.idea
 /.vscode
 Debug
+.clang-format
