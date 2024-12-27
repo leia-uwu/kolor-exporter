@@ -23,5 +23,7 @@ sudo cmake --install build
 ## Uninstalling
 Run:
 ```bash
-sudo rm /usr/lib/qt/plugins/kf5/kded/kolor-exporter.so
+sudo rm /usr/lib/qt6/plugins/kf6/kded/kolor-exporter.so
 ```
+
+or whatever the qt6 plugins path is in your distro, idk, i use arch btw
