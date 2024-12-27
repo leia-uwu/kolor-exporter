@@ -8,6 +8,8 @@
 #include <KConfigGroup>
 #include <KPluginFactory>
 
+#include <QFileInfo>
+
 K_PLUGIN_CLASS_WITH_JSON(kolorExporter, "kolorExporter.json")
 
 kolorExporter::kolorExporter(QObject *parent, const QVariantList &)
@@ -23,22 +25,40 @@ kolorExporter::kolorExporter(QObject *parent, const QVariantList &)
 void kolorExporter::setColors() const
 {
     const QMap<QString, QColor> colors = getColors();
-
+    QString cfgDir = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation);
+    QString dataDir = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
+    QString homeDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
     writeCssColorsToFile(colors,
-                         QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)
-                             + QStringLiteral("/kde-colors.css"), // ~/.config/kde-colors.css
+                         cfgDir + QStringLiteral("/kde-colors.css"), // ~/.config/kde-colors.css
                          ":root",
                          "--");
 
     // rofi
     writeCssColorsToFile(colors,
-                         QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
-                             + QStringLiteral("/rofi/themes/kde-colors.rasi"), // ~/.local/share/rofi/themes/kde-colors.rasi
+                         dataDir + QStringLiteral("/rofi/themes/kde-colors.rasi"), // ~/.local/share/rofi/themes/kde-colors.rasi
                          "*",
                          "");
+
+    const QMap<QString, QColor> discordColors = getDiscordColors();
+
+    // possible vencord installations
+    QStringList discordConfigPaths = {
+        // vencord installed on vanilla discord
+        cfgDir + QStringLiteral("/Vencord"),
+        homeDir + QStringLiteral("/.var/app/com.discordapp.Discord/config/Vencord"),
+        // vesktop
+        cfgDir + QStringLiteral("/vesktop"),
+        homeDir + QStringLiteral("/.var/app/dev.vencord.Vesktop/config/vesktop"),
+    };
+
+    for (auto path : discordConfigPaths) {
+        if (!QFileInfo(path).isDir())
+            continue;
+        writeCssColorsToFile(discordColors, path + QStringLiteral("/themes/kde-colors.css"), "*", "--", true);
+    }
 }
 
-void kolorExporter::writeCssColorsToFile(QMap<QString, QColor> colors, QString path, QString rootPrefix, QString varPrefix) const
+void kolorExporter::writeCssColorsToFile(QMap<QString, QColor> colors, QString path, QString rootPrefix, QString varPrefix, bool important) const
 {
     QFile colorsCss(path);
 
@@ -47,9 +67,16 @@ void kolorExporter::writeCssColorsToFile(QMap<QString, QColor> colors, QString p
 
         colorsCssStream << QStringLiteral("%1 {\n").arg(rootPrefix);
         for (auto it = colors.cbegin(); it != colors.cend(); it++) {
-            colorsCssStream << QStringLiteral("    %1%2: %3;\n").arg(varPrefix, it.key(), it.value().name());
+            colorsCssStream << "    ";
+            colorsCssStream << varPrefix << it.key();
+            colorsCssStream << ": " << it.value().name();
+
+            if (important) {
+                colorsCssStream << "!important";
+            }
+            colorsCssStream << ";\n";
         }
-        colorsCssStream << QStringLiteral("}\n");
+        colorsCssStream << "}\n";
     }
 }
 
@@ -287,6 +314,77 @@ QMap<QString, QColor> kolorExporter::getColors() const
             {"theme-titlebar-foreground-insensitive-breeze", windowManagerConfig.readEntry("inactiveForeground", QColor())},
             {"theme-titlebar-foreground-insensitive-backdrop-breeze", windowManagerConfig.readEntry("inactiveForeground", QColor())},
         });
+    }
+
+    return result;
+}
+
+QMap<QString, QColor> kolorExporter::getDiscordColors() const
+{
+    using KCS = KColorScheme;
+
+    // Color Schemes Collection
+    QHash<QString, QHash<QString, KCS>> csc{
+        {QStringLiteral("active"),
+         {
+             {QStringLiteral("view"), KCS(QPalette::Active, KCS::View)},
+             {QStringLiteral("window"), KCS(QPalette::Active, KCS::Window)},
+             {QStringLiteral("button"), KCS(QPalette::Active, KCS::Button)},
+             {QStringLiteral("selection"), KCS(QPalette::Active, KCS::Selection)},
+             {QStringLiteral("tooltip"), KCS(QPalette::Active, KCS::Tooltip)},
+             {QStringLiteral("complementary"), KCS(QPalette::Active, KCS::Complementary)},
+             {QStringLiteral("header"), KCS(QPalette::Active, KCS::Header)},
+         }},
+    };
+
+    KConfigGroup windowManagerConfig = kdeglobalsConfig->group(QStringLiteral("WM"));
+
+    QMap<QString, QColor> result = {
+        {"background-primary", csc["active"]["window"].background(KCS::AlternateBackground).color()},
+        {"background-secondary", csc["active"]["view"].background(KCS::NormalBackground).color()},
+        {"modal-footer-background", csc["active"]["window"].background(KCS::NormalBackground).color()},
+        {"background-secondary-alt", csc["active"]["view"].background(KCS::NormalBackground).color()},
+        {"background-tertiary", csc["active"]["view"].background(KCS::AlternateBackground).color()},
+        {"background-accent", csc["active"]["window"].background(KCS::NormalBackground).color()},
+        {"background-floating", csc["active"]["window"].background(KCS::NormalBackground).color()},
+        {"background-modifier-selected", csc["active"]["window"].background(KCS::ActiveBackground).color()},
+        {"background-modifier-hover", csc["active"]["window"].background(KCS::ActiveBackground).color()},
+        {"background-modifier-active", csc["active"]["window"].background(KCS::ActiveBackground).color()},
+        {"modal-background", csc["active"]["window"].background(KCS::NormalBackground).color()},
+        {"scrollbar-thin-thumb", csc["active"]["selection"].background(KCS::NormalBackground).color()},
+        {"scrollbar-auto-thumb", csc["active"]["selection"].background(KCS::NormalBackground).color()},
+        {"scrollbar-auto-track", csc["active"]["window"].background(KCS::NormalBackground).color()},
+        {"scrollbar-auto-scrollbar-color-thumb", csc["active"]["selection"].background(KCS::NormalBackground).color()},
+        {"scrollbar-auto-scrollbar-color-track", csc["active"]["window"].background(KCS::NormalBackground).color()},
+        {"channeltextarea-background", csc["active"]["view"].background(KCS::NormalBackground).color()},
+        {"input-background", csc["active"]["view"].background(KCS::NormalBackground).color()},
+        {"background-nested-floating", csc["active"]["view"].background(KCS::AlternateBackground).color()},
+    };
+
+    int colorIds[26] = {
+        100, 130, 160, 200, 230, 260, 300, 330, 345, 360, 400, 430, 460, 500, 530, 560, 600, 630, 660, 700, 730, 760, 800, 830, 860, 900,
+    };
+
+    QColor accent = csc["active"]["selection"].background(KCS::NormalBackground).color();
+    int accentHue = accent.hslHue();
+    int accentSaturation = accent.hslSaturation();
+
+    QColor primary = csc["active"]["view"].background(KCS::AlternateBackground).color();
+    int primaryHue = primary.hslHue();
+    int primarySaturation = primary.hslSaturation();
+
+    for (int colorId : colorIds) {
+        // the css variables go from almost white (eg. --brand-100) to almost black (--brand-900)
+        float f = (colorId - 80) / 940.f;
+        int lightness = abs((f * 255) - 255);
+
+        QColor brandColor = QColor::fromHsl(accentHue, accentSaturation, lightness);
+        QString brandId = QString("brand-%1").arg(colorId);
+        result.insert(brandId, brandColor);
+
+        QColor primaryColor = QColor::fromHsl(primaryHue, primarySaturation, lightness);
+        QString primaryId = QString("primary-%1").arg(colorId);
+        result.insert(primaryId, primaryColor);
     }
 
     return result;

@@ -6,6 +6,11 @@ for now it exports to:
 
 - `~/.config/kde-colors.css`
 - `~/.local/share/rofi/themes/kde-colors.rasi`
+Vencord theme folders:
+- `~/.config/Vencord/themes/kde-colors.css`
+- `~/.var/app/com.discordapp.Discord/config/Vencord`
+- `~/.config/vesktop/themes/kde-colors.css`
+- `~/.var/app/dev.vencord.Vesktop/config/vesktop`
 
 ## Compiling and installing
 Run:

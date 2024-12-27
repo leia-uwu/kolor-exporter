@@ -14,8 +14,9 @@ public Q_SLOTS:
 
 private:
     void setColors() const;
-    void writeCssColorsToFile(QMap<QString, QColor> colors, QString path, QString rootPrefix, QString varPrefix) const;
+    void writeCssColorsToFile(QMap<QString, QColor> colors, QString path, QString rootPrefix, QString varPrefix, bool important = false) const;
     KConfigWatcher::Ptr kdeglobalsConfigWatcher;
     QMap<QString, QColor> getColors() const;
+    QMap<QString, QColor> getDiscordColors() const;
     KSharedConfigPtr kdeglobalsConfig;
 };
