@@ -349,6 +349,7 @@ QMap<QString, QColor> kolorExporter::getDiscordColors() const
         {"background-modifier-hover", csc["active"]["window"].background(KCS::ActiveBackground).color()},
         {"background-modifier-active", csc["active"]["window"].background(KCS::ActiveBackground).color()},
         {"modal-background", csc["active"]["window"].background(KCS::NormalBackground).color()},
+        {"home-background", csc["active"]["window"].background(KCS::AlternateBackground).color()},
         {"scrollbar-thin-thumb", csc["active"]["selection"].background(KCS::NormalBackground).color()},
         {"scrollbar-auto-thumb", csc["active"]["selection"].background(KCS::NormalBackground).color()},
         {"scrollbar-auto-track", csc["active"]["window"].background(KCS::NormalBackground).color()},
@@ -359,8 +360,8 @@ QMap<QString, QColor> kolorExporter::getDiscordColors() const
         {"background-nested-floating", csc["active"]["view"].background(KCS::AlternateBackground).color()},
     };
 
-    int colorIds[26] = {
-        100, 130, 160, 200, 230, 260, 300, 330, 345, 360, 400, 430, 460, 500, 530, 560, 600, 630, 660, 700, 730, 760, 800, 830, 860, 900,
+    int colorIds[27] = {
+        100, 130, 160, 200, 230, 260, 300, 330, 345, 360, 400, 430, 460, 500, 530, 560, 600, 630, 645, 660, 700, 730, 760, 800, 830, 860, 900,
     };
 
     QColor accent = csc["active"]["selection"].background(KCS::NormalBackground).color();
@@ -371,6 +372,11 @@ QMap<QString, QColor> kolorExporter::getDiscordColors() const
     int primaryHue = primary.hslHue();
     int primarySaturation = primary.hslSaturation();
 
+    // i love magic
+    auto superCoolEasingFunction = [](float x) {
+        return x == 0 ? 0 : x == 1 ? 1 : x < 0.5 ? pow(1.3, 20 * x - 10) / 2 : (2 - pow(2, -20 * x + 10)) / 2;
+    };
+
     for (int colorId : colorIds) {
         // the css variables go from almost white (eg. --brand-100) to almost black (--brand-900)
         float f = (colorId - 80) / 940.f;
@@ -379,6 +385,8 @@ QMap<QString, QColor> kolorExporter::getDiscordColors() const
         QColor brandColor = QColor::fromHsl(accentHue, accentSaturation, lightness);
         QString brandId = QString("brand-%1").arg(colorId);
         result.insert(brandId, brandColor);
+
+        lightness = abs((superCoolEasingFunction(f) * 255) - 255);
 
         QColor primaryColor = QColor::fromHsl(primaryHue, primarySaturation, lightness);
         QString primaryId = QString("primary-%1").arg(colorId);
