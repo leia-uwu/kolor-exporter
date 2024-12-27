@@ -337,8 +337,6 @@ QMap<QString, QColor> kolorExporter::getDiscordColors() const
          }},
     };
 
-    KConfigGroup windowManagerConfig = kdeglobalsConfig->group(QStringLiteral("WM"));
-
     QMap<QString, QColor> result = {
         {"background-primary", csc["active"]["window"].background(KCS::AlternateBackground).color()},
         {"background-secondary", csc["active"]["view"].background(KCS::NormalBackground).color()},
