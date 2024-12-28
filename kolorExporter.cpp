@@ -360,10 +360,6 @@ QMap<QString, QColor> kolorExporter::getDiscordColors() const
         {"background-nested-floating", csc["active"]["view"].background(KCS::AlternateBackground).color()},
     };
 
-    int colorIds[27] = {
-        100, 130, 160, 200, 230, 260, 300, 330, 345, 360, 400, 430, 460, 500, 530, 560, 600, 630, 645, 660, 700, 730, 760, 800, 830, 860, 900,
-    };
-
     QColor accent = csc["active"]["selection"].background(KCS::NormalBackground).color();
     int accentHue = accent.hslHue();
     int accentSaturation = accent.hslSaturation();
@@ -374,22 +370,26 @@ QMap<QString, QColor> kolorExporter::getDiscordColors() const
 
     // i love magic
     auto superCoolEasingFunction = [](float x) {
-        return x == 0 ? 0 : x == 1 ? 1 : x < 0.5 ? pow(1.3, 20 * x - 10) / 2 : (2 - pow(2, -20 * x + 10)) / 2;
+        return x < 0.5 ? pow(1.3, 20 * x - 10) / 2 : (2 - pow(1.3, -20 * x + 10)) / 2;
+    };
+
+    int colorIds[27] = {
+        100, 130, 160, 200, 230, 260, 300, 330, 345, 360, 400, 430, 460, 500, 530, 560, 600, 630, 645, 660, 700, 730, 760, 800, 830, 860, 900,
     };
 
     for (int colorId : colorIds) {
         // the css variables go from almost white (eg. --brand-100) to almost black (--brand-900)
-        float f = (colorId - 80) / 940.f;
-        int lightness = abs((f * 255) - 255);
+        float t = colorId / 900.f;
+        int lightness = abs((t * 255) - 255);
 
         QColor brandColor = QColor::fromHsl(accentHue, accentSaturation, lightness);
-        QString brandId = QString("brand-%1").arg(colorId);
+        QString brandId = QStringLiteral("brand-%1").arg(colorId);
         result.insert(brandId, brandColor);
 
-        lightness = abs((superCoolEasingFunction(f) * 255) - 255);
+        lightness = abs((superCoolEasingFunction(t) * 255) - 255);
 
         QColor primaryColor = QColor::fromHsl(primaryHue, primarySaturation, lightness);
-        QString primaryId = QString("primary-%1").arg(colorId);
+        QString primaryId = QStringLiteral("primary-%1").arg(colorId);
         result.insert(primaryId, primaryColor);
     }
 
